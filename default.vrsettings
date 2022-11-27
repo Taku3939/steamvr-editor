@@ -1,6 +1,10 @@
 {
     "driver_null": {
         "enable": false,
+        "uo": {
+            "hoge" : 2,
+            "uouo" : ["1", "3"]
+        },
         "loadPriority": -999,
         "serialNumber": "Null Serial Number",
         "modelNumber": "Null Model Number",

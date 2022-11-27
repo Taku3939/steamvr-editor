@@ -16,7 +16,11 @@ struct Person {
 }
 #[tauri::command]
 fn load() -> String {
-    fs::read_to_string("F:/default.vrsettings").unwrap()
+    let s = match fs::read_to_string("../default.vrsettings") {
+        Ok(v) => v,
+        Err(e) => e.to_string(),
+    };
+    s
 }
 
 fn main() {

@@ -1,58 +1,36 @@
 import { invoke } from '@tauri-apps/api/tauri'
 import { useState } from 'react'
 
-export const useSettingLoader = () => {
+export const useSettingLoader = (path: string) => {
     const [settings, setSettings] = useState<any>()
-    const [isLoading, setIsLoading] = useState<boolean>(false)
 
-    async function Load(): Promise<any> {
-        setIsLoading(true)
-        const txt: string = await invoke('load')
-        setIsLoading(false)
+    const write = async (arr: any) => await invoke('write', { path, txt: JSON.stringify(arr, null, 2) })
 
-        return JSON.parse(txt)
-    }
-
-    const load = async () => {
-        await Load()
+    const load = async () =>
+        await invoke<string>('load', { path })
             .then((res) => {
-                setSettings(res)
+                try {
+                    const parseTxt = JSON.parse(res)
+                    setSettings(parseTxt)
+                } catch (err) {}
             })
             .catch((_) => {})
-    }
 
-    function set2(state: any): { [x: string]: any } {
-        return Object.entries(state).forEach(([key, value]) => {
-            return { key, value }
-        })
-    }
-
-    function set(path: string[], value: any) {
-        setSettings((prevState: { [x: string]: any } | undefined) => {
-            if (prevState !== undefined) {
-                let data = prevState
-                let output: { [x: string]: any } = {}
-                while (Object.entries(prevState).length > 0) {
-                    Object.entries(prevState).forEach(([key, value]) => {})
-                }
-
-                // const list = []
-                // list.push(k)
-                // let i = 0
-                // for (; i < path.length - 1; i++) {
-                //     k = k[path[i]]
-                //     list.push(k)
-                // }
-                //
-                // k[0] = value
-                // for (i = path.length; i >= 0; i--) {}
-                //
-                // console.log(list)
-                return prevState
+    async function setValue(path: string[], value: any) {
+        if (settings !== undefined) {
+            const arr = { ...settings }
+            const tmpArr = [arr[path[0]]]
+            for (let i = 1; i < path.length; i++) {
+                let tmp = tmpArr[i - 1][path[i]]
+                if (i == path.length - 1) tmp = value
+                tmpArr[i] = tmp
             }
-            return prevState
-        })
+            for (let i = path.length - 1; i >= 1; i--) tmpArr[i - 1][path[i]] = tmpArr[i]
+
+            await write(arr)
+            await load()
+        }
     }
 
-    return { settings, set, isLoading, load }
+    return { settings, setSettings: setValue, load }
 }

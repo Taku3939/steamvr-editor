@@ -12,7 +12,11 @@ export const InputBox = <T extends string | boolean | number>({ path, value, onC
                     type="number"
                     value={value}
                     onChange={(v) => {
-                        onChange(path, parseFloat(v.target.value) as T)
+                        //数字以外の入力を受け付けない
+                        if (v.target.value) {
+                            const tmp = parseFloat(v.target.value)
+                            if (!isNaN(tmp)) onChange(path, tmp as T)
+                        }
                     }}
                 />
             )
